@@ -61,13 +61,13 @@ uLeftMAX = 0;                 %left u  max boundary condition
 
 uRightMAX = 0;                %right u max boundary condition
 
-uTopMAX = 0;                %top u max boundary condition
+uTopMAX = 2.5;                %top u max boundary condition
 
-uBottomMAX = 0;               %bottom u max boundary condition
+uBottomMAX = -2.5;               %bottom u max boundary condition
 
 vLeftMAX = 0;              %left v max boundary condition
 
-vRightMAX = -2.5;                %right v max boundary condition
+vRightMAX = 0;                %right v max boundary condition
 
 vTopMAX = 0;                  %top v max boundary condition
 
@@ -79,7 +79,9 @@ mu = 0.02;                    %Dynamic Viscosity mu
 
 rho = 1;                      %Density of liquid
 
-Re = (rho*Lx*abs(vRightMAX))/mu      %Reynolds number
+BC_Vec = [uLeftMAX uRightMAX uTopMAX uBottomMAX vLeftMAX vRightMAX vTopMAX vBottomMAX]; %Boundary condtion vector for computing reynolds number
+
+Re = (rho*Lx*abs(max(abs(BC_Vec))))/mu      %Reynolds number
 
 %perform time stepping----------------------------------------------
 
@@ -106,14 +108,25 @@ while t < TFinal
     %----------------------------------------------%
     %   Step 1: Solve for auxilary variables       %
     %----------------------------------------------%
+    % Dirichlet Boundary conditions(tops) and      %  
+    % Neumann Boundary conditions(bottoms)         %
+    %----------------------------------------------%
     uS(:,1) = uLeft;
+    %uS(:,1) = uP(:,2);
     uS(:,Nx+1) = uRight;
+    %uS(:,Nx+1) = uP(:,Nx);
     uS(1,:) = uBottom;
+    %uS(1,:) = uP(2,:);
     uS(Ny+1,:) = uTop;
+    %uS(Ny+1,:) = uP(Ny,:);
     vS(:,1) = vLeft;
+    %vS(:,1) = vP(:,2);
     vS(:,Nx+1) = vRight;
+    %vS(:,Nx+1) = vP(:,Nx);
     vS(1,:) = vBottom;
+    %vS(1,:) = vP(2,:);
     vS(Ny+1,:) = vTop;
+    %vS(Ny+1,:) = vP(Ny,:);
     
     %----------------------------------------------------%
     % Creating the needed derivative terms for computing %
@@ -135,6 +148,7 @@ while t < TFinal
     %   Step 2: Find the Pressure Function         %
     %----------------------------------------------%
 
+    %Pressure = Jacobi_2D_Poisson_Solver(Nx,Ny,dx,dy,dt,rho,uS,vS,xIds,yIds);
     Pressure = SOR_2D_Poisson_Solver(Nx,Ny,dx,dy,dt,rho,uS,vS,xIds,yIds);
 
     %----------------------------------------------%
@@ -217,7 +231,7 @@ while t < TFinal
         % zlim([0,7]) 
         view(2)                             %changes view of graph 1st number is angle from x to y, second number is angle from top to bottom
         pause(0.01)
-        f1.Position = [250 250 520 400];
+        f1.Position = [900 250 520 400];
         hold off
 
         ctsave = ctsave + 1;
